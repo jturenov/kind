@@ -1,6 +1,6 @@
 # topic_peek
 
-Small Flask app that sends messages to a Kafka topic and shows the latest ones.
+Web application with a Flask backend and HTML/JS frontend for sending messages to a Kafka topic and viewing the latest messages.
 
 ## API Endpoints
 
@@ -58,20 +58,69 @@ Retrieve the last 10 messages from the Kafka topic.
 curl http://localhost:8000/messages
 ```
 
-## Build custom app
+## Project Structure
 
-- `main.py`: Flask app with `/health`, `POST /produce` and `GET /messages`
-- `requirements.txt`: flask, kafka-python
-- `Dockerfile`: Python 3.12 slim image running the app on port 8000
+```
+kafka_peek/
+├── backend/          # Flask API
+│   ├── main.py      # API endpoints: /health, POST /produce, GET /messages
+│   ├── requirements.txt  # flask, flask-cors, kafka-python
+│   └── Dockerfile   # Python 3.12 slim image
+├── frontend/        # Web UI
+│   ├── index.html   # Main HTML page
+│   ├── style.css    # Styling
+│   ├── app.js       # Frontend logic (no Kafka dependency)
+│   └── Dockerfile   # Nginx alpine image
+└── compose.yaml     # Orchestrates kafka, backend, and frontend
+```
 
-## Building and running with podman compose
+## Features
 
-- `compose.yaml`: two services, `kafka` (single-node broker) and `app`
-- Build and start: `make up`
-- Send and read a message: `make test`
-- Logs: `make logs`
-- Stop: `make down`
+**Frontend (http://localhost:3000)**
+- Send custom messages to Kafka via form input
+- View the last 10 messages from the topic
+- Refresh messages on demand
+- Clean, responsive UI
 
-Notes: the app reaches the broker at `kafka:9092` via the compose network.
+**Backend API (http://localhost:8000)**
+- `GET /health` - Health check
+- `POST /produce` - Send message to Kafka
+- `GET /messages` - Retrieve last 10 messages
 
-short “problems I hit” section if you like (the Docker Hub pull limit and the switch to quay.io are good material), since teachers usually like that.
+**Note:** Frontend communicates with Kafka only through the backend API - no direct Kafka dependency.
+
+## Building and Running
+
+**Requirements:** podman/docker with compose
+
+```bash
+# Build and start all services (kafka, backend, frontend)
+make up
+
+# Test the backend API
+make test
+
+# View logs
+make logs
+
+# Stop all services
+make down
+```
+
+## Access Points
+
+- **Frontend UI:** http://localhost:3000
+- **Backend API:** http://localhost:8000
+- **Kafka broker:** kafka:9092 (internal to compose network)
+
+## Backend API Examples
+
+```bash
+# Send a custom message
+curl -X POST http://localhost:8000/produce \
+  -H “Content-Type: application/json” \
+  -d '{“message”:”Hello Kafka!”}'
+
+# Retrieve messages
+curl http://localhost:8000/messages
+```
