@@ -31,8 +31,9 @@ graph TB
 **Flow:**
 1. User opens frontend UI in browser (port 3000)
 2. User sends message via form → Frontend calls POST `/produce` → Backend produces to Kafka
-3. User clicks refresh → Frontend calls GET `/messages` → Backend consumes from Kafka
+3. User clicks refresh → Frontend calls GET `/messages` → Backend consumes from Kafka and returns last 10 messages
 4. Optionally, user can view Kafka UI (port 8080) to browse topics and messages directly
+5. Alternatively, users can call backend API directly via curl (port 8000)
 
 ## API Endpoints
 
