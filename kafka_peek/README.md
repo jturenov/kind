@@ -2,6 +2,38 @@
 
 Web application with a Flask backend and HTML/JS frontend for sending messages to a Kafka topic and viewing the latest messages.
 
+## Architecture
+
+```mermaid
+graph TB
+    subgraph "Docker Compose Network"
+        Frontend["Frontend (Nginx)<br/>Port: 3000<br/>- Send messages<br/>- View messages"]
+        Backend["Backend (Flask)<br/>Port: 8000<br/>GET /<br/>GET /health<br/>POST /produce<br/>GET /messages"]
+        Kafka["Kafka Broker<br/>(KRaft mode)<br/>Port: 9092<br/>Topic: 'peek'"]
+        KafkaUI["Kafka UI<br/>Port: 8080<br/>(tools profile)<br/>- Browse topics<br/>- View messages<br/>- Cluster info"]
+        
+        Frontend -->|HTTP API calls| Backend
+        Backend <-->|Producer/Consumer| Kafka
+        KafkaUI -.->|Monitor/Browse| Kafka
+    end
+    
+    User["User Browser"] -->|http://localhost:3000| Frontend
+    User -->|http://localhost:8080<br/>optional| KafkaUI
+    User -.->|http://localhost:8000<br/>curl/direct API| Backend
+    
+    style Frontend fill:#e1f5ff
+    style Backend fill:#fff4e1
+    style Kafka fill:#ffe1f5
+    style KafkaUI fill:#e1ffe1
+    style User fill:#e8e8e8
+```
+
+**Flow:**
+1. User opens frontend UI in browser (port 3000)
+2. User sends message via form → Frontend calls POST `/produce` → Backend produces to Kafka
+3. User clicks refresh → Frontend calls GET `/messages` → Backend consumes from Kafka
+4. Optionally, user can view Kafka UI (port 8080) to browse topics and messages directly
+
 ## API Endpoints
 
 ### `GET /`
@@ -71,7 +103,9 @@ kafka_peek/
 │   ├── style.css    # Styling
 │   ├── app.js       # Frontend logic (no Kafka dependency)
 │   └── Dockerfile   # Nginx alpine image
-└── compose.yaml     # Orchestrates kafka, backend, and frontend
+├── compose.yaml     # Orchestrates kafka, backend, frontend, and kafka-ui
+├── .env             # Port configuration (KAFKA_UI_PORT, BACKEND_PORT, FRONTEND_PORT)
+└── Makefile         # Commands: up, up-tools, down, logs, test
 ```
 
 ## Features
@@ -87,6 +121,13 @@ kafka_peek/
 - `POST /produce` - Send message to Kafka
 - `GET /messages` - Retrieve last 10 messages
 
+**Kafka UI (http://localhost:8080) - Optional Tools Profile**
+- Web-based Kafka management console
+- Browse topics and messages
+- View cluster information and broker details
+- Monitor consumer groups
+- Real-time message inspection
+
 **Note:** Frontend communicates with Kafka only through the backend API - no direct Kafka dependency.
 
 ## Building and Running
@@ -94,8 +135,11 @@ kafka_peek/
 **Requirements:** podman/docker with compose
 
 ```bash
-# Build and start all services (kafka, backend, frontend)
+# Build and start core services (kafka, backend, frontend)
 make up
+
+# Build and start with Kafka UI (optional tools profile)
+make up-tools
 
 # Test the backend API
 make test
@@ -107,10 +151,28 @@ make logs
 make down
 ```
 
+### Compose Profiles
+
+This project uses Docker Compose profiles to keep the default setup lean:
+
+- **Default profile** (`make up`): Starts Kafka, backend, and frontend
+- **Tools profile** (`make up-tools`): Includes Kafka UI web console for exploring topics, messages, and cluster info
+
+### Environment Variables
+
+Port configuration can be customized via `.env` file:
+
+```bash
+KAFKA_UI_PORT=8080      # Kafka UI web console
+BACKEND_PORT=8000       # Flask backend API
+FRONTEND_PORT=3000      # Frontend web UI
+```
+
 ## Access Points
 
 - **Frontend UI:** http://localhost:3000
 - **Backend API:** http://localhost:8000
+- **Kafka UI (tools profile):** http://localhost:8080
 - **Kafka broker:** kafka:9092 (internal to compose network)
 
 ## Backend API Examples
