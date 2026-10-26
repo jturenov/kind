@@ -10,7 +10,7 @@ graph TB
         Frontend["Frontend (Nginx)<br/>Port: 3000<br/>- Send messages<br/>- View messages"]
         Backend["Backend (Flask)<br/>Port: 8000<br/>GET /<br/>GET /health<br/>POST /produce<br/>GET /messages"]
         Kafka["Kafka Broker<br/>(KRaft mode)<br/>Port: 9092<br/>Topic: 'peek'"]
-        KafkaUI["Kafka UI<br/>Port: 8080<br/>(tools profile)<br/>- Browse topics<br/>- View messages<br/>- Cluster info"]
+        KafkaUI["Kafka UI<br/>Port: 8080<br/>- Browse topics<br/>- View messages<br/>- Cluster info"]
         
         Frontend -->|HTTP API calls| Backend
         Backend <-->|Producer/Consumer| Kafka
@@ -106,7 +106,7 @@ kafka_peek/
 │   └── Dockerfile   # Nginx alpine image
 ├── compose.yaml     # Orchestrates kafka, backend, frontend, and kafka-ui
 ├── .env             # Port configuration (KAFKA_UI_PORT, BACKEND_PORT, FRONTEND_PORT)
-└── Makefile         # Commands: up, up-tools, down, logs, test
+└── Makefile         # Commands: up, down, logs, test
 ```
 
 ## Features
@@ -122,12 +122,12 @@ kafka_peek/
 - `POST /produce` - Send message to Kafka
 - `GET /messages` - Retrieve last 10 messages
 
-**Kafka UI (http://localhost:8080) - Optional Tools Profile**
+**Kafka UI (http://localhost:8080)**
 - Web-based Kafka management console
-- Browse topics and messages
+- Browse the `peek` topic and its partitions
+- View and search messages in real-time
+- Monitor consumer groups and lag
 - View cluster information and broker details
-- Monitor consumer groups
-- Real-time message inspection
 
 **Note:** Frontend communicates with Kafka only through the backend API - no direct Kafka dependency.
 
@@ -136,11 +136,8 @@ kafka_peek/
 **Requirements:** podman/docker with compose
 
 ```bash
-# Build and start core services (kafka, backend, frontend)
+# Build and start all services (kafka, backend, frontend, kafka-ui)
 make up
-
-# Build and start with Kafka UI (optional tools profile)
-make up-tools
 
 # Test the backend API
 make test
@@ -151,13 +148,6 @@ make logs
 # Stop all services
 make down
 ```
-
-### Compose Profiles
-
-This project uses Docker Compose profiles to keep the default setup lean:
-
-- **Default profile** (`make up`): Starts Kafka, backend, and frontend
-- **Tools profile** (`make up-tools`): Includes Kafka UI web console for exploring topics, messages, and cluster info
 
 ### Environment Variables
 
@@ -173,8 +163,27 @@ FRONTEND_PORT=3000      # Frontend web UI
 
 - **Frontend UI:** http://localhost:3000
 - **Backend API:** http://localhost:8000
-- **Kafka UI (tools profile):** http://localhost:8080
+- **Kafka UI:** http://localhost:8080
 - **Kafka broker:** kafka:9092 (internal to compose network)
+
+### Using Kafka UI
+
+Open http://localhost:8080 to access the Kafka web console. Here you can:
+
+**Topics:**
+- View the `peek` topic and its configuration
+- See partition count and replication factor
+- Browse messages in real-time
+
+**Messages:**
+- Click on the `peek` topic to view all messages
+- See message content, keys, timestamps, and offsets
+- Filter and search through messages
+
+**Consumer Groups:**
+- Monitor consumer group lag (will show when consumers are connected)
+- Track offset positions
+- View consumer group members and their partition assignments
 
 ## Backend API Examples
 
