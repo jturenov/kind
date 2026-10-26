@@ -2,6 +2,34 @@
 
 Web application with a Flask backend and HTML/JS frontend for sending messages to a Kafka topic and viewing the latest messages.
 
+## Architecture
+
+```mermaid
+graph TB
+    subgraph "Docker Compose Network"
+        Frontend["Frontend (Nginx)<br/>Port: 3000<br/>- index.html<br/>- style.css<br/>- app.js"]
+        Backend["Backend (Flask)<br/>Port: 8000<br/>GET /<br/>GET /health<br/>POST /produce<br/>GET /messages"]
+        Kafka["Kafka Broker<br/>(KRaft mode)<br/>Port: 9092<br/>Topic: 'peek'"]
+        
+        Frontend -->|HTTP API calls| Backend
+        Backend <-->|Producer/Consumer| Kafka
+    end
+    
+    User["User Browser"] -->|http://localhost:3000| Frontend
+    User -.->|http://localhost:8000<br/>curl/direct API| Backend
+    
+    style Frontend fill:#e1f5ff
+    style Backend fill:#fff4e1
+    style Kafka fill:#ffe1f5
+    style User fill:#e8e8e8
+```
+
+**Flow:**
+1. User opens frontend UI in browser (port 3000)
+2. User sends message via form → Frontend calls POST `/produce` → Backend produces to Kafka
+3. User clicks refresh → Frontend calls GET `/messages` → Backend consumes from Kafka and returns last 10 messages
+4. Alternatively, users can call backend API directly via curl (port 8000)
+
 ## API Endpoints
 
 ### `GET /`
