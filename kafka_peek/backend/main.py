@@ -1,11 +1,13 @@
 import os
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from kafka import KafkaProducer, KafkaConsumer
 
 BROKER = os.environ.get("KAFKA_BROKER", "localhost:9092")
 TOPIC = "peek"
 
 app = Flask(__name__)
+CORS(app)
 
 
 @app.get("/")
