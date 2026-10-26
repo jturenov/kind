@@ -20,6 +20,22 @@ def health():
 
 @app.post("/produce")
 def produce():
+    """
+    Produce a message to the Kafka topic.
+
+    Accepts JSON body with optional 'message' field.
+    If no message is provided, defaults to "hello".
+
+    Request body:
+        {
+            "message": "your custom message"
+        }
+
+    Returns:
+        {
+            "sent": "the message that was sent"
+        }
+    """
     message = (request.get_json(silent=True) or {}).get("message", "hello")
     producer = KafkaProducer(bootstrap_servers=BROKER)
     producer.send(TOPIC, message.encode())
