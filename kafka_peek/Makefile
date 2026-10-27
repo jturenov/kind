@@ -18,3 +18,4 @@ test:
 	curl localhost:8000/messages
 	@echo ""
 	@echo "Frontend available at: http://localhost:3000"
+	@echo "Kafka UI available at: http://localhost:8080"
