@@ -1,4 +1,4 @@
-Personal playground for learning kubernetes with kind.
+Personal playground for learning podman,kubernetes with kind.
 
 Licensed under Apache License 2.0
 
