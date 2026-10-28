@@ -4,7 +4,7 @@ from flask_cors import CORS
 from kafka import KafkaProducer, KafkaConsumer
 
 BROKER = os.environ.get("KAFKA_BROKER", "localhost:9092")
-TOPIC = "peek"
+TOPIC = os.environ.get("KAFKA_TOPIC", "peek")
 
 app = Flask(__name__)
 CORS(app)
@@ -60,4 +60,4 @@ def messages():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000)
+    app.run(host="0.0.0.0", port=int(os.environ.get("BACKEND_PORT", "8000")))
