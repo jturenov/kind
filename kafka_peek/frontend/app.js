@@ -2,6 +2,8 @@ const API_BASE_URL = 'http://localhost:8000';
 
 // DOM elements
 const sendForm = document.getElementById('sendForm');
+const sensorInput = document.getElementById('sensorInput');
+const valueInput = document.getElementById('valueInput');
 const messageInput = document.getElementById('messageInput');
 const sendStatus = document.getElementById('sendStatus');
 const refreshBtn = document.getElementById('refreshBtn');
@@ -11,33 +13,41 @@ const messagesContainer = document.getElementById('messagesContainer');
 sendForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    const sensor_id = sensorInput.value.trim();
+    const value = parseFloat(valueInput.value);
     const message = messageInput.value.trim();
-    if (!message) return;
+
+    if (!sensor_id || isNaN(value)) return;
 
     try {
         sendStatus.textContent = 'Sending...';
         sendStatus.className = 'status';
+
+        const payload = { sensor_id, value };
+        if (message) payload.message = message;
 
         const response = await fetch(`${API_BASE_URL}/produce`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ message }),
+            body: JSON.stringify(payload),
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const error = await response.json();
+            throw new Error(error.error || `HTTP ${response.status}`);
         }
 
         const data = await response.json();
 
-        sendStatus.textContent = `✓ Message sent: "${data.sent}"`;
+        sendStatus.textContent = `✓ Sent: ${data.sent.sensor_id} = ${data.sent.value}`;
         sendStatus.className = 'status success';
 
+        sensorInput.value = '';
+        valueInput.value = '';
         messageInput.value = '';
 
-        // Auto-hide success message after 3 seconds
         setTimeout(() => {
             sendStatus.textContent = '';
             sendStatus.className = 'status';
@@ -70,10 +80,16 @@ async function fetchMessages() {
 
         let html = `<p class="message-count">Showing last ${messages.length} messages:</p>`;
 
-        messages.forEach((msg, index) => {
+        messages.forEach((record, index) => {
+            const v = record.value;
+            const appTime = new Date(v.timestamp).toLocaleString();
+            const kafkaTime = new Date(record.kafka_timestamp).toLocaleString();
+
             html += `
                 <div class="message-item">
-                    <strong>#${messages.length - index}:</strong> ${escapeHtml(msg)}
+                    <div><strong>Sensor:</strong> ${escapeHtml(v.sensor_id)} | <strong>Value:</strong> ${v.value}</div>
+                    <div><small>App Time: ${appTime} | Kafka Time: ${kafkaTime}</small></div>
+                    ${v.message ? `<div><small>${escapeHtml(v.message)}</small></div>` : ''}
                 </div>
             `;
         });
