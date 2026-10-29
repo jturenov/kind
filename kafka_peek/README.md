@@ -165,6 +165,9 @@ kafka_peek/
 **Note:** The JSON envelope format is a breaking change. If upgrading from an older version, run `make down && make up` to start with a clean topic.
 
 ```bash
+# Copy environment template
+cp .env.example .env
+
 # Build and start all services (kafka, backend, frontend, kafka-ui)
 make up
 
@@ -180,12 +183,15 @@ make down
 
 ### Environment Variables
 
-Port configuration can be customized via `.env` file:
+Configuration can be customized via `.env` file:
 
 ```bash
-KAFKA_UI_PORT=8080      # Kafka UI web console
-BACKEND_PORT=8000       # Flask backend API
-FRONTEND_PORT=3000      # Frontend web UI
+KAFKA_IMAGE=quay.io/strimzi/kafka:latest-kafka-3.8.0
+KAFKA_BROKER=kafka:9092
+KAFKA_TOPIC=peek
+BACKEND_PORT=8000
+FRONTEND_PORT=3000
+KAFKA_UI_PORT=8080
 ```
 
 ## Access Points
