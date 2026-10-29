@@ -51,31 +51,44 @@ Health status endpoint.
 ```
 
 ### `POST /produce`
-Produce a message to the Kafka topic.
+Produce a sensor reading to the Kafka topic.
 
 **Request body (JSON):**
 ```json
 {
-  "message": "your custom message"
+  "sensor_id": "kitchen-1",
+  "value": 21.5,
+  "message": "optional note"
 }
 ```
 
-The `message` field is optional and defaults to `"hello"` if not provided.
+- `sensor_id` (required): Sensor identifier, used as Kafka message key
+- `value` (required): Numeric sensor value
+- `message` (optional): Free-text note
+
+Records are produced with a message key (sensor_id) so equal keys land in the same partition.
+Server generates UUID and UTC ISO-8601 timestamp for each record.
 
 **Response:**
 ```json
-{"sent": "your custom message"}
+{
+  "sent": {
+    "id": "uuid",
+    "sensor_id": "kitchen-1",
+    "value": 21.5,
+    "timestamp": "2026-10-28T12:00:00+00:00",
+    "message": "optional note"
+  }
+}
 ```
+
+Returns HTTP 400 with error details on validation failure.
 
 **Examples:**
 ```bash
-# Send a custom message
 curl -X POST http://localhost:8000/produce \
   -H "Content-Type: application/json" \
-  -d '{"message": "Hello Kafka!"}'
-
-# Send with default message
-curl -X POST http://localhost:8000/produce
+  -d '{"sensor_id":"kitchen-1","value":21.5,"message":"test"}'
 ```
 
 ### `GET /messages`
@@ -83,7 +96,21 @@ Retrieve the last 10 messages from the Kafka topic.
 
 **Response:**
 ```json
-{"messages": ["message1", "message2", "..."]}
+{
+  "messages": [
+    {
+      "key": "kitchen-1",
+      "value": {
+        "id": "uuid",
+        "sensor_id": "kitchen-1",
+        "value": 21.5,
+        "timestamp": "2026-10-28T12:00:00+00:00",
+        "message": "test"
+      },
+      "kafka_timestamp": 1730116800000
+    }
+  ]
+}
 ```
 
 **Example:**
@@ -134,6 +161,8 @@ kafka_peek/
 ## Building and Running
 
 **Requirements:** podman/docker with compose
+
+**Note:** The JSON envelope format is a breaking change. If upgrading from an older version, run `make down && make up` to start with a clean topic.
 
 ```bash
 # Build and start all services (kafka, backend, frontend, kafka-ui)

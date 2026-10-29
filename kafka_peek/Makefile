@@ -14,7 +14,7 @@ logs:
 
 test:
 	@echo "Testing backend API..."
-	curl -X POST localhost:8000/produce -H "Content-Type: application/json" -d '{"message":"hello,jolie"}'
+	curl -X POST localhost:8000/produce -H "Content-Type: application/json" -d '{"sensor_id":"kitchen-1","value":21.5,"message":"test reading"}'
 	curl localhost:8000/messages
 	@echo ""
 	@echo "Frontend available at: http://localhost:3000"
