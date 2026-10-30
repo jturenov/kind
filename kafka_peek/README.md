@@ -11,16 +11,16 @@ graph TB
         Backend["Backend (Flask)<br/>Port: 8000<br/>GET /<br/>GET /health<br/>POST /produce<br/>GET /messages"]
         Kafka["Kafka Broker<br/>(KRaft mode)<br/>Port: 9092<br/>Topic: 'peek'"]
         KafkaUI["Kafka UI<br/>Port: 8080<br/>- Browse topics<br/>- View messages<br/>- Cluster info"]
-        
+
         Frontend -->|HTTP API calls| Backend
         Backend <-->|Producer/Consumer| Kafka
         KafkaUI -.->|Monitor/Browse| Kafka
     end
-    
+
     User["User Browser"] -->|http://localhost:3000| Frontend
     User -->|http://localhost:8080<br/>optional| KafkaUI
     User -.->|http://localhost:8000<br/>curl/direct API| Backend
-    
+
     style Frontend fill:#e1f5ff
     style Backend fill:#fff4e1
     style Kafka fill:#ffe1f5
@@ -161,6 +161,10 @@ kafka_peek/
 - Sends alerts to `alerts` topic when value exceeds threshold
 - Horizontally scalable (`--scale worker=3`)
 - Demonstrates partition assignment and rebalancing
+**Learning (N/A)**
+- Not and endpoint
+- Actual purpose of this project
+- “The journey is the destination.” — Dan Eldon
 
 **Kafka UI (http://localhost:8080)**
 - Web-based Kafka management console
